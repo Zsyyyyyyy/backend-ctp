@@ -83,10 +83,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     connection_options.db = stoi( config["db"] );
     logger->info("1");
     cout << "connect to redis...";
-    Redis new_pub = Redis(connection_options);
-    publisher = &new_pub;
     logger->info("Redis 配置: host=%v, port=%v, db=%v",
              config["host"], config["port"], config["db"]);
+    Redis new_pub = Redis(connection_options);
+    publisher = &new_pub;
     Subscriber subscriber = publisher->subscriber();
     logger->info("3");
     cout << "done!" << endl;
