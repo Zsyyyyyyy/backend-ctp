@@ -81,10 +81,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     connection_options.host = config["host"];
     connection_options.port = stoi( config["port"] );
     connection_options.db = stoi( config["db"] );
+    logger->info("1");
     cout << "connect to redis...";
     Redis new_pub = Redis(connection_options);
     publisher = &new_pub;
+    logger->info("2");
     Subscriber subscriber = publisher->subscriber();
+    logger->info("3");
     cout << "done!" << endl;
     BROKER_ID = config["broker"];
     INVESTOR_ID = config["investor"];
