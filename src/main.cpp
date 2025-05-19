@@ -85,7 +85,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     cout << "connect to redis...";
     Redis new_pub = Redis(connection_options);
     publisher = &new_pub;
-    logger->info("2");
+    logger->info("Redis 配置: host=%v, port=%v, db=%v",
+             config["host"], config["port"], config["db"]);
     Subscriber subscriber = publisher->subscriber();
     logger->info("3");
     cout << "done!" << endl;
