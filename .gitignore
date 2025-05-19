@@ -1,0 +1,9 @@
+build
+.idea
+*.exe
+*.log
+*.pdb
+*.manifest
+*.con
+.vscode
+.vs
