@@ -81,14 +81,23 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     connection_options.host = config["host"];
     connection_options.port = stoi( config["port"] );
     connection_options.db = stoi( config["db"] );
-    logger->info("1");
+
     cout << "connect to redis...";
-    logger->info("Redis 配置: host=%v, port=%v, db=%v",
-             config["host"], config["port"], config["db"]);
+    // try {
+    //     Redis new_pub = Redis(connection_options);
+    //     publisher = &new_pub;
+    //     Subscriber subscriber = publisher->subscriber();
+    // } catch (const Error &e) {
+    //     cerr << "有问题: " << e.what() <<endl;
+    // }
+    logger->info("1");
     Redis new_pub = Redis(connection_options);
+    logger->info("2");
     publisher = &new_pub;
-    Subscriber subscriber = publisher->subscriber();
     logger->info("3");
+
+
+ 
     cout << "done!" << endl;
     BROKER_ID = config["broker"];
     INVESTOR_ID = config["investor"];
@@ -98,21 +107,37 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
     USERINFO = config["userinfo"];
     IP_ADDRESS = config["ip"];
     MAC_ADDRESS = config["mac"];
+
+    logger->info("配置项如下：");
+    logger->info("BROKER_ID: %v", BROKER_ID);
+    logger->info("INVESTOR_ID: %v", INVESTOR_ID);
+    logger->info("PASSWORD: %v", PASSWORD);         // ⚠️ 密码建议别直接输出到日志
+    logger->info("APPID: %v", APPID);
+    logger->info("AUTHCODE: %v", AUTHCODE);
+    logger->info("USERINFO: %v", USERINFO);
+    logger->info("IP_ADDRESS: %v", IP_ADDRESS);
+    logger->info("MAC_ADDRESS: %v", MAC_ADDRESS);
+
+
     logger->info("连接交易服务器..");
-    pTraderApi = CThostFtdcTraderApi::CreateFtdcTraderApi( trade_path.c_str() );   // 创建TradeApi
-    auto *pTraderSpi = new CTraderSpi();
-    pTraderApi->RegisterSpi(pTraderSpi);                                           // 注册事件类
-    pTraderApi->SubscribePublicTopic(THOST_TERT_QUICK);                // 注册公有流
-    pTraderApi->SubscribePrivateTopic(THOST_TERT_QUICK);               // 注册私有流
+
+    pTraderApi = CThostFtdcTraderApi::CreateFtdcTraderApi( trade_path.c_str() );   // 1. 创建TradeApi
+    auto *pTraderSpi = new CTraderSpi();                               // 2. 实例化Spi
+    pTraderApi->RegisterSpi(pTraderSpi);                               // 3. 注册事件类
+    pTraderApi->SubscribePublicTopic(THOST_TERT_QUICK);                // 4. 注册公有流
+    pTraderApi->SubscribePrivateTopic(THOST_TERT_QUICK);               // 5. 注册私有流
     pTraderApi->RegisterFront( (char *) config["trade"].c_str() );     // connect
     logger->info("连接行情服务器..");
     pMdApi = CThostFtdcMdApi::CreateFtdcMdApi( md_path.c_str() );      // 创建MdApi
     CThostFtdcMdSpi *pMdSpi = new CMdSpi();
     pMdApi->RegisterSpi(pMdSpi);                                       // 注册事件类
     pMdApi->RegisterFront( (char *) config["market"].c_str() );        // connect
+    jthread command_handler(handle_command);
+    Subscriber subscriber = publisher->subscriber();
+    logger->info("4");
 
     logger->info("开启命令处理线程..");
-    jthread command_handler(handle_command);
+    
     subscriber.psubscribe(CHANNEL_REQ_PATTERN);
     subscriber.on_pmessage(handle_req_request);
 
